@@ -13,7 +13,6 @@ private:
     std::queue<std::function<void()>> queue_;
 
 public:
-    // Конструктор теперь не принимает capacity
     explicit UnboundedQueue();
 
     void push(std::function<void()> task) override;
