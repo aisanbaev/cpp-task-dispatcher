@@ -64,7 +64,6 @@ std::optional<std::function<void()>> PriorityQueue::pop() {
                 return task_opt;
             }
         }
-        // Возможна гонка между wait и try_pop, цикл продолжается.
     }
 }
 

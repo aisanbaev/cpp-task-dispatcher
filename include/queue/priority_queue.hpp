@@ -21,10 +21,7 @@ private:
     std::atomic<bool> is_shutdown_ = false;
     std::atomic<size_t> num_total_tasks_{0};  // Атомарный счётчик общего количества задач
 
-    // Создания очереди по её опциям
     static std::unique_ptr<IQueue> CreateQueue(const QueueOptions &options);
-
-    // Проверка наличия задач во всех очередях
     bool HasTasksAvailable() const;
 
 public:
