@@ -8,8 +8,6 @@ UnboundedQueue::UnboundedQueue() {}
 void UnboundedQueue::push(std::function<void()> task) {
     std::lock_guard<std::mutex> lock(mutex_);
     queue_.push(std::move(task));  // Добавляем задачу в очередь
-    // Уведомляем один ожидающий поток, что задача поступила
-    not_empty_.notify_one();
 }
 
 std::optional<std::function<void()>> UnboundedQueue::try_pop() {

@@ -112,7 +112,7 @@ TEST(UnboundedQueueTest, PushDoesNotBlock) {
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
 
     // Проверяем, что очередь не пуста после добавления
-    EXPECT_GT(queue.try_pop().has_value(), false);  // Извлекаем хотя бы одну, чтобы проверить, что добавление прошло
+    EXPECT_TRUE(queue.try_pop().has_value());  // Извлекаем хотя бы одну, чтобы проверить, что добавление прошло
 
     bool queue_not_empty_after_pushes = false;
     for (int i = 0; i < NUM_TASKS && !queue_not_empty_after_pushes; ++i) {

@@ -8,9 +8,8 @@ namespace dispatcher::queue {
 
 class BoundedQueue : public IQueue {
 private:
-    mutable std::mutex mutex_;           // Защита доступа к внутренним данным
-    std::condition_variable not_empty_;  // Условие: очередь не пуста (для pop)
-    std::condition_variable not_full_;   // Условие: очередь не полна (для push)
+    mutable std::mutex mutex_;          // Защита доступа к внутренним данным
+    std::condition_variable not_full_;  // Условие: очередь не полна (для push)
     std::queue<std::function<void()>> queue_;
     const int capacity_;
 

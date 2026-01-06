@@ -18,7 +18,7 @@ private:
     std::map<TaskPriority, std::unique_ptr<IQueue>> queues_by_priority_;
     mutable std::mutex mutex_;
     std::condition_variable cv_tasks_available_;
-    std::atomic<bool> is_shutdown_ = false;
+    bool is_shutdown_ = false;
     std::atomic<size_t> num_total_tasks_{0};  // Атомарный счётчик общего количества задач
 
     static std::unique_ptr<IQueue> CreateQueue(const QueueOptions &options);

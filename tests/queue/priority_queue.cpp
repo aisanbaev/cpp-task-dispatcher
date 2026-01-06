@@ -162,49 +162,51 @@ TEST(PriorityQueueTest, MultithreadedProducerConsumer) {
 
     const int NUM_HIGH_TASKS = 50;
     const int NUM_NORMAL_TASKS = 50;
+    const int TOTAL_TASKS = NUM_HIGH_TASKS + NUM_NORMAL_TASKS;
 
-    std::atomic<int> high_counter(0);
-    std::atomic<int> normal_counter(0);
+    std::atomic<int> high_execution_counter(0);
+    std::atomic<int> normal_execution_counter(0);
 
     // Поток-продюсер для высокого приоритета
-    std::thread high_producer([&pq, NUM_HIGH_TASKS, &high_counter]() {
+    std::thread high_producer([&pq, NUM_HIGH_TASKS, &high_execution_counter]() {
         for (int i = 0; i < NUM_HIGH_TASKS; ++i) {
-            pq.push(TaskPriority::High, [&high_counter, i]() { high_counter.fetch_add(1); });
+            pq.push(TaskPriority::High, [&high_execution_counter]() { high_execution_counter.fetch_add(1); });
         }
     });
 
     // Поток-продюсер для нормального приоритета
-    std::thread normal_producer([&pq, NUM_NORMAL_TASKS, &normal_counter]() {
+    std::thread normal_producer([&pq, NUM_NORMAL_TASKS, &normal_execution_counter]() {
         for (int i = 0; i < NUM_NORMAL_TASKS; ++i) {
-            pq.push(TaskPriority::Normal, [&normal_counter, i]() { normal_counter.fetch_add(1); });
+            pq.push(TaskPriority::Normal, [&normal_execution_counter]() { normal_execution_counter.fetch_add(1); });
         }
     });
 
     // Поток-потребитель
-    std::thread consumer([&pq, NUM_HIGH_TASKS, NUM_NORMAL_TASKS, &high_counter, &normal_counter]() {
-        int received_high = 0;
-        int received_normal = 0;
-        while (received_high < NUM_HIGH_TASKS || received_normal < NUM_NORMAL_TASKS) {
-            auto task = pq.pop();
-            if (task.has_value()) {
-                task.value()();
-                if (true) {
-                    // Просто выполним, счётчики обновляются внутри лямбд
-                }
-                received_high += (high_counter.load() - received_high);
-                received_normal += (normal_counter.load() - received_normal);
+    std::thread consumer([&pq, &high_execution_counter, &normal_execution_counter]() {
+        int tasks_processed = 0;
+        while (true) {
+            auto task = pq.pop();  // Блокируется, пока не появится задача или не будет shutdown
+            if (!task.has_value()) {
+                break;
             }
+            task.value()();     // Выполняем задачу (увеличивает атомарный счётчик)
+            tasks_processed++;  // Увеличиваем счётчик обработанных задач
         }
     });
 
+    // Ждём завершения producer-ов
     high_producer.join();
     normal_producer.join();
-    pq.shutdown();  // Останавливаем потребителя
+
+    // Теперь, когда все producer-ы завершены, вызываем shutdown
+    pq.shutdown();
+
+    // Ждём завершения consumer-а
     consumer.join();
 
     // Проверяем, что все задачи были выполнены
-    EXPECT_EQ(high_counter.load(), NUM_HIGH_TASKS);
-    EXPECT_EQ(normal_counter.load(), NUM_NORMAL_TASKS);
+    EXPECT_EQ(high_execution_counter.load(), NUM_HIGH_TASKS);
+    EXPECT_EQ(normal_execution_counter.load(), NUM_NORMAL_TASKS);
 }
 
 // Исключение при неверной конфигурации

@@ -8,8 +8,7 @@ namespace dispatcher::queue {
 
 class UnboundedQueue : public IQueue {
 private:
-    mutable std::mutex mutex_;           // Защита доступа к внутренним данным
-    std::condition_variable not_empty_;  // Условие: очередь не пуста (для pop)
+    mutable std::mutex mutex_;  // Защита доступа к внутренним данным
     std::queue<std::function<void()>> queue_;
 
 public:
